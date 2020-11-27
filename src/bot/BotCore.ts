@@ -9,10 +9,15 @@ interface ImethodsList {
 
 
 
-enum callResult {
+enum callCode {
   success = 0,
   fail = 1,
   nothing = 2
+}
+
+interface ICallResult {
+  code: callCode;
+  message: string;
 }
 
 export default class BotCore  {
@@ -34,9 +39,9 @@ export default class BotCore  {
     
     this.bot.on('message', async (message) => {
       let result = await this.onMessage(message);
-      if(result != callResult.nothing) {
-        if(result == callResult.success) message.channel.send('Success');
-        else message.channel.send('Fail');
+      if(result.code != callCode.nothing) {
+        if(result.code == callCode.success) message.channel.send(result.message);
+        else message.channel.send(result.message);
       }
     });
 
@@ -65,10 +70,10 @@ export default class BotCore  {
     ) {
       await oldState.channel.delete();
     }
-    return callResult.nothing
+    return {code: callCode.nothing, message: 'nothing happened'};
   }
 
-  async setPrefix(message: Message, args?: Array<string>) {
+  async setPrefix(message: Message, args?: Array<string>): Promise<ICallResult> {
 
     let result;
     try{
@@ -76,10 +81,10 @@ export default class BotCore  {
         result = await this.botSettings.updateSettings(message.guild!.id, {prefix: args[0]});
       }
       console.log(`Successful seting a prefix on ${message.guild!.id} (${message.guild!.name}).`);
-      return callResult.success
+      return {code: callCode.success, message: 'Success'};
     } catch {
       console.log(`Failed to set a prefix on ${message.guild!.id} (${message.guild!.name}).`);
-      return callResult.fail
+      return {code: callCode.fail, message: 'Fail'}
     }
   }
 
@@ -91,15 +96,15 @@ export default class BotCore  {
     try {
       result =  await this.botSettings.createSettings(message.guild!.id);
       console.log(`Successful seting default settings on ${message.guild!.id} (${message.guild!.name}).`);
-      return callResult.success
+      return {code: callCode.success, message: 'Success'};
     } catch {
       console.log(`Failed to set default settings on ${message.guild!.id} (${message.guild!.name}).`);
-      return callResult.fail
+      return {code: callCode.fail, message: 'Fail'};
     }
   }
 
   
-  async onMessage(message: Message){
+  async onMessage(message: Message): Promise<ICallResult> {
       if(message.author.username != this.bot.user!.username && message.author.discriminator != this.bot.user!.discriminator) { // && 
         if(message.guild != null){
           const settings = this.botSettings.getSettings(message.guild.id);
@@ -114,14 +119,14 @@ export default class BotCore  {
             if(this.methodsList.hasOwnProperty(command)) { 
               return await this.methodsList[command].call(this, message, content.split(/\s/).slice(1));
             }
-            else return callResult.fail;
+            else return {code: callCode.fail, message: 'Fail'};
           }
         }
       }
-    return callResult.nothing
+    return {code: callCode.nothing, message: 'nothing happened'}
   }
 
-  async setChannel(message: Message, args: Array<string>) {
+  async setChannel(message: Message, args: Array<string>): Promise<ICallResult> {
     let result;
     try{
         result = await this.botSettings.updateSettings(message.guild!.id, { 
@@ -129,10 +134,10 @@ export default class BotCore  {
           category:  String(message.guild!.member(message.author)!.voice.channel!.parentID)
         });
         console.log(`Successful seting a channel on ${message.guild!.id} (${message.guild!.name}).`);
-        return callResult.success
+        return {code: callCode.success, message: 'Success'};
     } catch {
       console.log(`Failed to set a channel on ${message.guild!.id} (${message.guild!.name}).`);
-      return callResult.fail
+      return {code: callCode.fail, message: 'Fail'};
     }
   }
 /*
@@ -148,9 +153,10 @@ export default class BotCore  {
     }
   }
 */
-  async isAble(user: User) {
+  async checkRoles(user: GuildMember) {
     let result;
     try{
+      const roles = user.roles.cache
       return true
     } catch {
       return false
