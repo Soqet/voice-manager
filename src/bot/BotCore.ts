@@ -78,13 +78,13 @@ export default class BotCore  {
     let result;
     try{
       if (args != undefined) { 
-        result = await this.botSettings.updateSettings(message.guild!.id, {prefix: args[0]});
+        result = await this.botSettings.updateSettings(message.guild!.id, {prefix: !!args[0] ? args[0] : ''});
       }
       console.log(`Successful seting a prefix on ${message.guild!.id} (${message.guild!.name}).`);
-      return {code: callCode.success, message: 'Success'};
+      return {code: callCode.success, message: 'Success.'};
     } catch {
       console.log(`Failed to set a prefix on ${message.guild!.id} (${message.guild!.name}).`);
-      return {code: callCode.fail, message: 'Fail'}
+      return {code: callCode.fail, message: 'Fail.'}
     }
   }
 
@@ -96,10 +96,10 @@ export default class BotCore  {
     try {
       result =  await this.botSettings.createSettings(message.guild!.id);
       console.log(`Successful seting default settings on ${message.guild!.id} (${message.guild!.name}).`);
-      return {code: callCode.success, message: 'Success'};
+      return {code: callCode.success, message: 'Success.'};
     } catch {
       console.log(`Failed to set default settings on ${message.guild!.id} (${message.guild!.name}).`);
-      return {code: callCode.fail, message: 'Fail'};
+      return {code: callCode.fail, message: 'Fail.'};
     }
   }
 
@@ -116,10 +116,17 @@ export default class BotCore  {
           if (message.content.startsWith(prefix)) {
             const command = content.split(/\s/)[0];
             //console.log(this.botSettings);
-            if(this.methodsList.hasOwnProperty(command)) { 
+            const isHavePermissions = await this.checkRoles(message.guild!.member(message.author) as GuildMember);
+            if(this.methodsList.hasOwnProperty(command) && isHavePermissions.code == callCode.success) { 
               return await this.methodsList[command].call(this, message, content.split(/\s/).slice(1));
             }
-            else return {code: callCode.fail, message: 'Fail'};
+            else {
+              if (isHavePermissions.code == callCode.fail) {
+                return isHavePermissions;
+              } else {
+                return {code: callCode.fail, message: 'Undefined command.'}
+              }
+            }
           }
         }
       }
@@ -134,10 +141,10 @@ export default class BotCore  {
           category:  String(message.guild!.member(message.author)!.voice.channel!.parentID)
         });
         console.log(`Successful seting a channel on ${message.guild!.id} (${message.guild!.name}).`);
-        return {code: callCode.success, message: 'Success'};
+        return {code: callCode.success, message: 'Success.'};
     } catch {
       console.log(`Failed to set a channel on ${message.guild!.id} (${message.guild!.name}).`);
-      return {code: callCode.fail, message: 'Fail'};
+      return {code: callCode.fail, message: 'Fail.'};
     }
   }
 /*
@@ -155,11 +162,21 @@ export default class BotCore  {
 */
   async checkRoles(user: GuildMember) {
     let result;
+    const adminPermission = 8;
     try{
-      const roles = user.roles.cache
-      return true
-    } catch {
-      return false
+      console.log()
+      if(user.id == user.guild.ownerID) return {code: callCode.success, message: 'Success.'};
+      const roles = user.roles.cache;
+      for(let role of roles.keyArray()) {
+        console.log(roles.get(role)?.permissions.bitfield, (roles.get(role)?.permissions.bitfield as any as number) & adminPermission);
+        if((roles.get(role)?.permissions.bitfield as any as number) & adminPermission) {
+          return {code: callCode.success, message: 'Success.'}
+        }
+      }
+      return {code: callCode.fail, message: "You don't have permissions for that command."};
+    } catch (error) {
+      console.log(error);
+      return {code: callCode.fail, message: "You don't have permissions for that command."};
     }
   }
   

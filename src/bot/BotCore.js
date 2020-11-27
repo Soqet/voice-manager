@@ -36,12 +36,12 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var callResult;
-(function (callResult) {
-    callResult[callResult["success"] = 0] = "success";
-    callResult[callResult["fail"] = 1] = "fail";
-    callResult[callResult["nothing"] = 2] = "nothing";
-})(callResult || (callResult = {}));
+var callCode;
+(function (callCode) {
+    callCode[callCode["success"] = 0] = "success";
+    callCode[callCode["fail"] = 1] = "fail";
+    callCode[callCode["nothing"] = 2] = "nothing";
+})(callCode || (callCode = {}));
 var BotCore = /** @class */ (function () {
     function BotCore(bot, botSettings, token) {
         this.bot = bot;
@@ -72,11 +72,11 @@ var BotCore = /** @class */ (function () {
                                     case 0: return [4 /*yield*/, this.onMessage(message)];
                                     case 1:
                                         result = _a.sent();
-                                        if (result != callResult.nothing) {
-                                            if (result == callResult.success)
-                                                message.channel.send('Success');
+                                        if (result.code != callCode.nothing) {
+                                            if (result.code == callCode.success)
+                                                message.channel.send(result.message);
                                             else
-                                                message.channel.send('Fail');
+                                                message.channel.send(result.message);
                                         }
                                         return [2 /*return*/];
                                 }
@@ -122,7 +122,7 @@ var BotCore = /** @class */ (function () {
                     case 4:
                         _g.sent();
                         _g.label = 5;
-                    case 5: return [2 /*return*/, callResult.nothing];
+                    case 5: return [2 /*return*/, { code: callCode.nothing, message: 'nothing happened' }];
                 }
             });
         });
@@ -135,17 +135,17 @@ var BotCore = /** @class */ (function () {
                     case 0:
                         _b.trys.push([0, 3, , 4]);
                         if (!(args != undefined)) return [3 /*break*/, 2];
-                        return [4 /*yield*/, this.botSettings.updateSettings(message.guild.id, { prefix: args[0] })];
+                        return [4 /*yield*/, this.botSettings.updateSettings(message.guild.id, { prefix: !!args[0] ? args[0] : '' })];
                     case 1:
                         result = _b.sent();
                         _b.label = 2;
                     case 2:
                         console.log("Successful seting a prefix on " + message.guild.id + " (" + message.guild.name + ").");
-                        return [2 /*return*/, callResult.success];
+                        return [2 /*return*/, { code: callCode.success, message: 'Success.' }];
                     case 3:
                         _a = _b.sent();
                         console.log("Failed to set a prefix on " + message.guild.id + " (" + message.guild.name + ").");
-                        return [2 /*return*/, callResult.fail];
+                        return [2 /*return*/, { code: callCode.fail, message: 'Fail.' }];
                     case 4: return [2 /*return*/];
                 }
             });
@@ -162,11 +162,11 @@ var BotCore = /** @class */ (function () {
                     case 1:
                         result = _b.sent();
                         console.log("Successful seting default settings on " + message.guild.id + " (" + message.guild.name + ").");
-                        return [2 /*return*/, callResult.success];
+                        return [2 /*return*/, { code: callCode.success, message: 'Success.' }];
                     case 2:
                         _a = _b.sent();
                         console.log("Failed to set default settings on " + message.guild.id + " (" + message.guild.name + ").");
-                        return [2 /*return*/, callResult.fail];
+                        return [2 /*return*/, { code: callCode.fail, message: 'Fail.' }];
                     case 3: return [2 /*return*/];
                 }
             });
@@ -174,12 +174,12 @@ var BotCore = /** @class */ (function () {
     };
     BotCore.prototype.onMessage = function (message) {
         return __awaiter(this, void 0, void 0, function () {
-            var settings, prefix, content, command;
+            var settings, prefix, content, command, isHavePermissions;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        if (!(message.author.username != this.bot.user.username && message.author.discriminator != this.bot.user.discriminator)) return [3 /*break*/, 3];
-                        if (!(message.guild != null)) return [3 /*break*/, 3];
+                        if (!(message.author.username != this.bot.user.username && message.author.discriminator != this.bot.user.discriminator)) return [3 /*break*/, 4];
+                        if (!(message.guild != null)) return [3 /*break*/, 4];
                         settings = this.botSettings.getSettings(message.guild.id);
                         prefix = void 0;
                         if (settings == undefined) {
@@ -188,13 +188,23 @@ var BotCore = /** @class */ (function () {
                         else
                             prefix = settings.prefix;
                         content = message.content.substring(prefix.length);
-                        if (!message.content.startsWith(prefix)) return [3 /*break*/, 3];
+                        if (!message.content.startsWith(prefix)) return [3 /*break*/, 4];
                         command = content.split(/\s/)[0];
-                        if (!this.methodsList.hasOwnProperty(command)) return [3 /*break*/, 2];
+                        return [4 /*yield*/, this.checkRoles(message.guild.member(message.author))];
+                    case 1:
+                        isHavePermissions = _a.sent();
+                        if (!(this.methodsList.hasOwnProperty(command) && isHavePermissions.code == callCode.success)) return [3 /*break*/, 3];
                         return [4 /*yield*/, this.methodsList[command].call(this, message, content.split(/\s/).slice(1))];
-                    case 1: return [2 /*return*/, _a.sent()];
-                    case 2: return [2 /*return*/, callResult.fail];
-                    case 3: return [2 /*return*/, callResult.nothing];
+                    case 2: return [2 /*return*/, _a.sent()];
+                    case 3:
+                        if (isHavePermissions.code == callCode.fail) {
+                            return [2 /*return*/, isHavePermissions];
+                        }
+                        else {
+                            return [2 /*return*/, { code: callCode.fail, message: 'Undefined command.' }];
+                        }
+                        _a.label = 4;
+                    case 4: return [2 /*return*/, { code: callCode.nothing, message: 'nothing happened' }];
                 }
             });
         });
@@ -213,11 +223,11 @@ var BotCore = /** @class */ (function () {
                     case 1:
                         result = _b.sent();
                         console.log("Successful seting a channel on " + message.guild.id + " (" + message.guild.name + ").");
-                        return [2 /*return*/, callResult.success];
+                        return [2 /*return*/, { code: callCode.success, message: 'Success.' }];
                     case 2:
                         _a = _b.sent();
                         console.log("Failed to set a channel on " + message.guild.id + " (" + message.guild.name + ").");
-                        return [2 /*return*/, callResult.fail];
+                        return [2 /*return*/, { code: callCode.fail, message: 'Fail.' }];
                     case 3: return [2 /*return*/];
                 }
             });
@@ -236,15 +246,29 @@ var BotCore = /** @class */ (function () {
         }
       }
     */
-    BotCore.prototype.isAble = function (user) {
+    BotCore.prototype.checkRoles = function (user) {
+        var _a, _b, _c;
         return __awaiter(this, void 0, void 0, function () {
-            var result;
-            return __generator(this, function (_a) {
+            var result, adminPermission, roles, _i, _d, role;
+            return __generator(this, function (_e) {
+                adminPermission = 8;
                 try {
-                    return [2 /*return*/, true];
+                    console.log();
+                    if (user.id == user.guild.ownerID)
+                        return [2 /*return*/, { code: callCode.success, message: 'Success.' }];
+                    roles = user.roles.cache;
+                    for (_i = 0, _d = roles.keyArray(); _i < _d.length; _i++) {
+                        role = _d[_i];
+                        console.log((_a = roles.get(role)) === null || _a === void 0 ? void 0 : _a.permissions.bitfield, ((_b = roles.get(role)) === null || _b === void 0 ? void 0 : _b.permissions.bitfield) & adminPermission);
+                        if (((_c = roles.get(role)) === null || _c === void 0 ? void 0 : _c.permissions.bitfield) & adminPermission) {
+                            return [2 /*return*/, { code: callCode.success, message: 'Success.' }];
+                        }
+                    }
+                    return [2 /*return*/, { code: callCode.fail, message: "You don't have permissions for that command." }];
                 }
-                catch (_b) {
-                    return [2 /*return*/, false];
+                catch (error) {
+                    console.log(error);
+                    return [2 /*return*/, { code: callCode.fail, message: "You don't have permissions for that command." }];
                 }
                 return [2 /*return*/];
             });
