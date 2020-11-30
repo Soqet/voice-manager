@@ -51,6 +51,7 @@ var BotCore = /** @class */ (function () {
         this.methodsList['setPrefix'] = this.setPrefix;
         //this.methodsList['setDefaultSettings'] = this.setDefaultSettings;
         this.methodsList['setChannel'] = this.setChannel;
+        this.methodsList['help'] = this.help;
     }
     BotCore.prototype.setup = function () {
         return __awaiter(this, void 0, void 0, function () {
@@ -148,6 +149,21 @@ var BotCore = /** @class */ (function () {
                         return [2 /*return*/, { code: callCode.fail, message: 'Fail.' }];
                     case 4: return [2 /*return*/];
                 }
+            });
+        });
+    };
+    BotCore.prototype.help = function (message, args) {
+        return __awaiter(this, void 0, void 0, function () {
+            var helpMessage;
+            return __generator(this, function (_a) {
+                helpMessage = 'Commands:' + '\n' +
+                    '!setChannel - Устанавливает канал для бота, **канал должен находится в отдельной категории**' + '\n' +
+                    '!setPrefix - Устанавливает префикс' + '\n' +
+                    '!help - выводит это сообщение';
+                return [2 /*return*/, {
+                        code: callCode.success,
+                        message: helpMessage
+                    }];
             });
         });
     };

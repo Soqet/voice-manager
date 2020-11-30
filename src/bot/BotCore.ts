@@ -28,6 +28,7 @@ export default class BotCore  {
     this.methodsList['setPrefix'] = this.setPrefix;
     //this.methodsList['setDefaultSettings'] = this.setDefaultSettings;
     this.methodsList['setChannel'] = this.setChannel;
+    this.methodsList['help'] = this.help;
   }
 
   async setup() {
@@ -86,6 +87,17 @@ export default class BotCore  {
       console.log(`Failed to set a prefix on ${message.guild!.id} (${message.guild!.name}).`);
       return {code: callCode.fail, message: 'Fail.'}
     }
+  }
+
+  async help(message: Message, args: Array<string>) {
+    const helpMessage = 'Commands:' + '\n' + 
+      '!setChannel - Устанавливает канал для бота, **канал должен находится в отдельной категории**' + '\n' + 
+      '!setPrefix - Устанавливает префикс' + '\n' + 
+      '!help - выводит это сообщение'
+    return {
+      code: callCode.success, 
+      message: helpMessage
+    };
   }
 
   async setDefaultSettings(message: Message, args: Array<string>) {
