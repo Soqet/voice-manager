@@ -26,7 +26,7 @@ export default class BotCore  {
 
   constructor(private bot: Client, private botSettings: BotSettings, private token: string) {
     this.methodsList['setPrefix'] = this.setPrefix;
-    this.methodsList['setDefaultSettings'] = this.setDefaultSettings;
+    //this.methodsList['setDefaultSettings'] = this.setDefaultSettings;
     this.methodsList['setChannel'] = this.setChannel;
   }
 
@@ -111,6 +111,7 @@ export default class BotCore  {
           let prefix: string;
           if(settings == undefined) {
             prefix = this.botSettings.getSettings('default').prefix;
+            this.setDefaultSettings(message, []);
           } else prefix = settings.prefix;
           const content = message.content.substring(prefix.length);
           if (message.content.startsWith(prefix)) {

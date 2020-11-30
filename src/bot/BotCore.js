@@ -49,7 +49,7 @@ var BotCore = /** @class */ (function () {
         this.token = token;
         this.methodsList = {};
         this.methodsList['setPrefix'] = this.setPrefix;
-        this.methodsList['setDefaultSettings'] = this.setDefaultSettings;
+        //this.methodsList['setDefaultSettings'] = this.setDefaultSettings;
         this.methodsList['setChannel'] = this.setChannel;
     }
     BotCore.prototype.setup = function () {
@@ -184,6 +184,7 @@ var BotCore = /** @class */ (function () {
                         prefix = void 0;
                         if (settings == undefined) {
                             prefix = this.botSettings.getSettings('default').prefix;
+                            this.setDefaultSettings(message, []);
                         }
                         else
                             prefix = settings.prefix;
